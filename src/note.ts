@@ -23,22 +23,6 @@ class Notes {
 export const notes = new Elysia().decorate("notes", new Notes()).group("/notes", (app) =>
   app
     .get("/", ({ notes }) => notes.data)
-    .get(
-      "/:index",
-      ({ notes, params: { index } }) => {
-        const note = notes.data[index]
-        if (!note) {
-          return error(404, { message: "Note not found" })
-        }
-
-        return { data: note }
-      },
-      {
-        params: t.Object({
-          index: t.Number(),
-        }),
-      },
-    )
     .post(
       "/",
       ({ notes, body }) => {
@@ -51,6 +35,19 @@ export const notes = new Elysia().decorate("notes", new Notes()).group("/notes",
         }),
       },
     )
+    .guard({
+      params: t.Object({
+        index: t.Number(),
+      }),
+    })
+    .get("/:index", ({ notes, params: { index } }) => {
+      const note = notes.data[index]
+      if (!note) {
+        return error(404, { message: "Note not found" })
+      }
+
+      return { data: note }
+    })
     .patch(
       "/:index",
       ({ notes, params: { index }, body }) => {
@@ -62,24 +59,17 @@ export const notes = new Elysia().decorate("notes", new Notes()).group("/notes",
         return notes.data
       },
       {
-        params: t.Object({
-          index: t.Number(),
-        }),
         body: t.Object({
           note: t.String(),
         }),
       },
     )
-    .delete(
-      "/:index",
-      ({ notes, params: { index } }) => {
-        if (!notes.data[index]) {
-          return error(404, { message: "Note not found" })
-        }
+    .delete("/:index", ({ notes, params: { index } }) => {
+      if (!notes.data[index]) {
+        return error(404, { message: "Note not found" })
+      }
 
-        notes.delete(index)
-        return { message: "Note deleted" }
-      },
-      { params: t.Object({ index: t.Number() }) },
-    ),
+      notes.delete(index)
+      return { message: "Note deleted" }
+    }),
 )
